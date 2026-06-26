@@ -1,0 +1,60 @@
+{% extends 'solutions/base.html' %}
+
+{% block title %}Вход - StepikAnswers{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5 pt-md-5">
+    <div class="col-md-8 col-lg-5 animate-stagger" style="animation-delay: 0.1s;">
+
+        <div class="text-center mb-5">
+            <div class="mb-4">
+                <i class="bi bi-box-arrow-in-right" style="font-size: 3.5rem; color: var(--accent);"></i>
+            </div>
+            <h1 style="font-family: var(--font-heading); font-weight: 600; font-size: 2.5rem;" class="mb-3">init_session</h1>
+            <p style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.9rem;">Авторизуйтесь для доступа к импорту и управлению ответами.</p>
+        </div>
+
+        <div class="glass-panel p-4 p-md-5 animate-stagger" style="animation-delay: 0.2s;">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert border mb-4 p-3" style="background: rgba(255, 107, 107, 0.08); border-color: rgba(255, 107, 107, 0.3) !important; color: #ff6b6b;">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-shield-exclamation me-2"></i>
+                        <span style="font-family: var(--font-mono); font-size: 0.85rem;">AUTH_FAILED: Неверное имя пользователя или пароль.</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label for="{{ form.username.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                        <i class="bi bi-person me-1"></i> USERNAME
+                    </label>
+                    {{ form.username }}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.password.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                        <i class="bi bi-lock me-1"></i> PASSWORD
+                    </label>
+                    {{ form.password }}
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-primary px-5 py-3 shadow-none w-100" style="font-size: 1.1rem; letter-spacing: 1px;">
+                        <i class="bi bi-arrow-right-circle me-2"></i> ВОЙТИ В СИСТЕМУ
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="text-center mt-4 animate-stagger" style="animation-delay: 0.3s;">
+            <p class="small" style="color: var(--text-secondary); font-family: var(--font-mono);">
+                Нет аккаунта? <a href="{% url 'register' %}" style="color: var(--accent); text-decoration: none;">create_account →</a>
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

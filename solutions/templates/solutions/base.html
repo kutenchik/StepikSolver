@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Stepik Answers{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom sticky-top py-3 animate-stagger" style="animation-delay: 0.1s;">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <i class="bi bi-book-half me-2"></i> StepikAnswers
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="/">Каталог курсов</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium" href="#">Топ решений</a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3 mt-3 mt-lg-0">
+                    <form class="d-flex" role="search">
+                        <input class="form-control me-2" type="search" placeholder="ID или название"
+                            aria-label="Search">
+                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-search"></i></button>
+                    </form>
+
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'add_course' %}" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-plus-lg"></i> Добавить
+                    </a>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> {{ user.username }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" style="background: var(--surface-color); border: 1px solid var(--border-color);">
+                            <li><a class="dropdown-item" href="{% url 'profile' %}" style="color: var(--text-primary);"><i class="bi bi-gear me-2"></i>Настройки API</a></li>
+                            <li><hr class="dropdown-divider" style="border-color: var(--border-color);"></li>
+                            <li><a class="dropdown-item" href="{% url 'logout' %}" style="color: #ff6b6b;"><i class="bi bi-box-arrow-right me-2"></i>Выйти</a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-outline-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-person-plus"></i> Регистрация
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <div class="container">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-none border" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer class="py-5 mt-auto animate-stagger" style="animation-delay: 0.6s;">
+        <div class="container text-center">
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-6">
+                    <h5 class="mb-3" style="color: var(--text-primary); font-family: var(--font-heading);">StepikAnswers DB</h5>
+                    <p class="text-muted small">Образовательная база решений. Создано для помощи в изучении
+                        программирования и точных наук.</p>
+                </div>
+            </div>
+            <div class="text-muted small" style="font-family: var(--font-mono);">
+                &copy; 2026 StepikAnswers. Все права не защищены. Используйте с умом.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

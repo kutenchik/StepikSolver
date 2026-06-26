@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+db.sqlite3
+ONLY_FOR_CONTEXT.py
+debug_api.py
+check_db.py
+test_steps.py
+test_submissions.py
+venv/

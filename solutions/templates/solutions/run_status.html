@@ -1,0 +1,165 @@
+{% extends 'solutions/base.html' %}
+
+{% block title %}Прогресс: {{ run.course.title }}{% endblock %}
+
+{% block content %}
+<div class="py-4 animate-stagger">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1" style="color: var(--text-primary); font-family: var(--font-heading);">
+                <i class="bi bi-robot text-primary me-2"></i> Автопрохождение
+            </h2>
+            <p class="text-muted mb-0">{{ run.course.title }}</p>
+        </div>
+        <a href="{% url 'course_detail' run.course.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Назад к курсу
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Status Panel -->
+        <div class="col-md-4">
+            <div class="glass-panel p-4 h-100">
+                <h5 class="text-muted mb-4">Статус</h5>
+                
+                <div class="d-flex align-items-center mb-4">
+                    <div id="status-spinner" class="spinner-border text-primary me-3" role="status" {% if run.status != 'running' and run.status != 'pending' %}style="display: none;"{% endif %}>
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div id="status-icon-done" class="text-success me-3 fs-3" {% if run.status != 'completed' %}style="display: none;"{% endif %}>
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div id="status-icon-err" class="text-danger me-3 fs-3" {% if run.status != 'failed' and run.status != 'stopped' %}style="display: none;"{% endif %}>
+                        <i class="bi bi-x-circle-fill"></i>
+                    </div>
+                    
+                    <div>
+                        <div class="fw-bold fs-5" id="status-text" style="color: var(--text-primary);">
+                            {{ run.get_status_display }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Шаги</span>
+                        <span id="steps-text">{{ run.steps_done }} / {{ run.steps_total }}</span>
+                    </div>
+                    <div class="progress bg-dark" style="height: 10px;">
+                        {% widthratio run.steps_done run.steps_total 100 as progress_percent %}
+                        <div id="steps-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: {% if run.steps_total > 0 %}{{ progress_percent }}{% else %}0{% endif %}%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="text-muted small mb-1">Баллы (Цель: <span id="target-score">{{ run.target_score }}</span>)</div>
+                    <div class="display-6 fw-bold" style="color: var(--primary-color);">
+                        <span id="current-score">{{ run.current_score }}</span> 
+                        <span class="text-muted fs-5">/ {{ run.total_score }}</span>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'stop_run' run.id %}" id="stop-form" {% if run.status != 'running' and run.status != 'pending' %}style="display: none;"{% endif %}>
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger w-100">
+                        <i class="bi bi-stop-circle me-2"></i> ОСТАНОВИТЬ
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Terminal Panel -->
+        <div class="col-md-8">
+            <div class="glass-panel p-0 h-100 d-flex flex-column" style="background-color: #0d1117;">
+                <div class="bg-dark p-2 px-3 border-bottom border-secondary d-flex justify-content-between align-items-center" style="border-radius: var(--border-radius) var(--border-radius) 0 0;">
+                    <div class="d-flex gap-2">
+                        <div class="rounded-circle" style="width: 12px; height: 12px; background-color: #ff5f56;"></div>
+                        <div class="rounded-circle" style="width: 12px; height: 12px; background-color: #ffbd2e;"></div>
+                        <div class="rounded-circle" style="width: 12px; height: 12px; background-color: #27c93f;"></div>
+                    </div>
+                    <div class="text-muted small font-monospace">stepik_solver.py</div>
+                    <div></div>
+                </div>
+                <div class="p-3 flex-grow-1 overflow-auto" id="terminal-container" style="max-height: 500px; font-family: var(--font-mono); font-size: 0.9rem; color: #c9d1d9;">
+                    <pre id="log-content" class="mb-0" style="white-space: pre-wrap;">{{ run.log }}</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const runId = {{ run.id }};
+    const apiUrl = "{% url 'run_status_api' run.id %}";
+    let pollingInterval;
+
+    function scrollToBottom() {
+        const container = document.getElementById('terminal-container');
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function updateUI(data) {
+        // Update Log
+        document.getElementById('log-content').textContent = data.log;
+        scrollToBottom();
+
+        // Update Scores
+        document.getElementById('current-score').textContent = data.current_score;
+        document.getElementById('target-score').textContent = data.target_score;
+
+        // Update Progress
+        document.getElementById('steps-text').textContent = `${data.steps_done} / ${data.steps_total}`;
+        let percent = 0;
+        if (data.steps_total > 0) {
+            percent = Math.floor((data.steps_done / data.steps_total) * 100);
+        }
+        const bar = document.getElementById('steps-bar');
+        bar.style.width = `${percent}%`;
+
+        // Update Status indicator
+        document.getElementById('status-text').textContent = data.status_display;
+        
+        const isRunning = (data.status === 'running' || data.status === 'pending');
+        
+        document.getElementById('status-spinner').style.display = isRunning ? 'block' : 'none';
+        document.getElementById('status-icon-done').style.display = data.status === 'completed' ? 'block' : 'none';
+        document.getElementById('status-icon-err').style.display = (data.status === 'failed' || data.status === 'stopped') ? 'block' : 'none';
+        
+        document.getElementById('stop-form').style.display = isRunning ? 'block' : 'none';
+
+        if (!isRunning) {
+            bar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+            if (data.status === 'failed' || data.status === 'stopped') {
+                bar.classList.replace('bg-primary', 'bg-danger');
+            } else {
+                bar.classList.replace('bg-primary', 'bg-success');
+            }
+            clearInterval(pollingInterval);
+        }
+    }
+
+    function pollStatus() {
+        fetch(apiUrl)
+            .then(res => res.json())
+            .then(data => updateUI(data))
+            .catch(err => console.error("Polling error:", err));
+    }
+
+    // Scroll immediately on load
+    scrollToBottom();
+
+    // Start polling if running
+    if ("{{ run.status }}" === "running" || "{{ run.status }}" === "pending") {
+        pollingInterval = setInterval(pollStatus, 2000);
+    } else {
+        // Set final bar color immediately if already finished
+        const bar = document.getElementById('steps-bar');
+        bar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+        if ("{{ run.status }}" === "failed" || "{{ run.status }}" === "stopped") {
+            bar.classList.replace('bg-primary', 'bg-danger');
+        } else {
+            bar.classList.replace('bg-primary', 'bg-success');
+        }
+    }
+</script>
+{% endblock %}

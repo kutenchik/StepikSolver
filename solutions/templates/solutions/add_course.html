@@ -1,0 +1,36 @@
+{% extends 'solutions/base.html' %}
+
+{% block title %}Импорт курса - StepikAnswers{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5 pt-md-5">
+    <div class="col-md-8 col-lg-6 animate-stagger" style="animation-delay: 0.1s;">
+        
+        <div class="text-center mb-5">
+            <h1 style="font-family: var(--font-heading); font-weight: 600; font-size: 3rem;" class="mb-3">init_link</h1>
+            <p style="color: var(--text-secondary); font-family: var(--font-mono);">Укажите идентификатор курса для синхронизации метаданных и решений.</p>
+        </div>
+
+        <form method="POST" class="position-relative">
+            {% csrf_token %}
+
+            <div class="mb-4 position-relative">
+                <i class="bi bi-search position-absolute top-50 translate-middle-y ms-4" style="font-size: 1.5rem; color: var(--accent); z-index: 10;"></i>
+                <input type="number" class="form-control command-palette-input w-100 ps-5" style="padding-left: 3.5rem !important;" id="stepik_id" name="stepik_id"
+                    placeholder="Course ID (ex. 512)..." required autofocus>
+                
+                <div class="form-text mt-3 text-center" style="color: #666; font-family: var(--font-mono); font-size: 0.85rem;">
+                    URL FORM: stepik.org/course/<span style="color: var(--text-primary);">512</span>/promo
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <button type="submit" class="btn btn-primary px-5 py-3 shadow-none" style="font-size: 1.1rem; letter-spacing: 1px;">
+                    <i class="bi bi-cpu me-2"></i> ЗАПУСТИТЬ ИКСТРАКТОР
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends 'solutions/base.html' %}
+
+{% block title %}{{ course.title }} - Ответы{% endblock %}
+
+{% block content %}
+<div class="row mb-5 glass-panel p-4 p-md-5 align-items-center animate-stagger" style="animation-delay: 0.1s;">
+    <div class="col-md-3 text-center text-md-start mb-4 mb-md-0 border-end border-secondary border-opacity-25">
+        {% if course.cover_url %}
+        <img src="{{ course.cover_url }}" class="img-fluid rounded-3 course-img shadow-sm" alt="Обложка"
+            style="height: auto; width: 80%;">
+        {% else %}
+        <div class="rounded-3 d-flex align-items-center justify-content-center mx-auto mx-md-0"
+            style="height: 150px; background: rgba(0,0,0,0.3); width: 80%;">
+            <i class="bi bi-cpu text-secondary display-4"></i>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-9 ps-md-5">
+        <h2 class="mb-3" style="font-family: var(--font-heading); font-size: 2.5rem;">{{ course.title }}</h2>
+        <div class="d-flex align-items-center gap-3 mb-4 text-muted"
+            style="font-family: var(--font-mono); font-size: 0.9rem;">
+            <span><i class="bi bi-hash"></i> {{ course.stepik_id }}</span>
+            <span class="badge border border-secondary text-secondary rounded-1 px-2 py-1">v1.0</span>
+        </div>
+        <div class="mb-4 course-description" style="color: #bbb; line-height: 1.6;">{{ course.description|safe }}</div>
+        <div class="d-flex gap-2">
+            <a href="https://stepik.org/course/{{ course.stepik_id }}" target="_blank"
+                class="btn btn-outline-primary btn-sm px-4 py-2">
+                ИСТОЧНИК <i class="bi bi-box-arrow-up-right ms-2"></i>
+            </a>
+            {% if user.is_authenticated %}
+            <a href="{% url 'run_course' course.id %}" class="btn btn-primary btn-sm px-4 py-2" style="background: linear-gradient(135deg, var(--primary-color) 0%, #1a8e10 100%); border: none;">
+                ПРОЙТИ КУРС <i class="bi bi-rocket-takeoff ms-2"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-4 d-flex align-items-center animate-stagger"
+    style="font-family: var(--font-heading); animation-delay: 0.2s;">
+    <i class="bi bi-code-square me-3" style="color: var(--accent);"></i> Исходный код ответов
+</h4>
+
+<div class="accordion" id="courseAccordion">
+    {% for section in course.sections.all %}
+    <div class="accordion-item shadow-none animate-stagger"
+        style="animation-delay: calc(0.2s + {{ forloop.counter }} * 0.1s);">
+        <h2 class="accordion-header" id="heading-{{ section.id }}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#collapse-{{ section.id }}" style="font-size: 1.1rem; letter-spacing: 0.5px;">
+                <span class="me-3 text-secondary"
+                    style="font-family: var(--font-mono);">0{{ section.position }}</span>
+                {{ section.title }}
+            </button>
+        </h2>
+
+        <div id="collapse-{{ section.id }}" class="accordion-collapse collapse" data-bs-parent="#courseAccordion">
+            <div class="accordion-body">
+
+                <div class="list-group list-group-flush">
+                    {% for lesson in section.lessons.all %}
+                    <div class="list-group-item p-4 p-md-5 border-bottom border-dark">
+                        <h5 class="mb-4 d-flex align-items-center">
+                            <i class="bi bi-journal-code me-3 text-secondary"></i>
+                            <span style="font-family: var(--font-heading); color: var(--text-primary);">Урок
+                                {{ lesson.position }}: {{ lesson.title }}</span>
+                        </h5>
+
+                        <div class="ps-md-4 ms-md-2 border-start border-secondary border-opacity-25 py-2">
+                            {% for task in lesson.tasks.all %}
+                            <div class="card mb-4 rounded-0 bg-transparent border-0">
+                                <div
+                                    class="card-header bg-transparent border-0 d-flex flex-wrap justify-content-between align-items-center mb-2 px-0 py-0">
+                                    <div style="font-family: var(--font-mono); font-size: 0.9rem;"
+                                        class="mb-2 mb-md-0">
+                                        <span class="text-secondary me-2">#{{ task.stepik_id }}</span>
+                                        <span class="text-primary opacity-75">[{{ task.get_task_type_display|upper }}]</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-success px-3" data-bs-toggle="collapse"
+                                        data-bs-target="#answer-{{ task.id }}">
+                                        {% if task.correct_answer %}
+                                        { ПОКАЗАТЬ_ОТВЕТ }
+                                        {% else %}
+                                        { ДОБАВИТЬ_ОТВЕТ }
+                                        {% endif %}
+                                    </button>
+                                </div>
+
+                                <div class="card-body px-0 py-2">
+                                    <div class="mb-3 small"
+                                        style="color: #999; max-height: 150px; overflow-y: auto; font-family: var(--font-body);">
+                                        {{ task.question_text|safe }}
+                                    </div>
+
+                                    <div class="collapse mt-3" id="answer-{{ task.id }}">
+                                        {% if task.correct_answer %}
+                                        <div class="p-4 rounded-3 border mt-3"
+                                            style="background-color: #0b0c0a; border-color: rgba(212, 255, 0, 0.15) !important;">
+                                            <code class="d-block w-100">{{ task.correct_answer }}</code>
+                                        </div>
+                                        <form method="POST" action="{% url 'save_answer' task.id %}" class="mt-3">
+                                            {% csrf_token %}
+                                            <details class="mt-2">
+                                                <summary class="text-secondary small"
+                                                    style="cursor: pointer; font-family: var(--font-mono);">
+                                                    > ИЗМЕНИТЬ_ОТВЕТ</summary>
+                                                <div class="mt-3">
+                                                    <textarea name="answer" rows="4"
+                                                        class="form-control mb-3"
+                                                        style="font-family: var(--font-mono); font-size: 0.9rem;"
+                                                        placeholder="Введите новый ответ...">{{ task.correct_answer }}</textarea>
+                                                    <button type="submit" class="btn btn-sm btn-primary px-4">
+                                                        СОХРАНИТЬ
+                                                    </button>
+                                                </div>
+                                            </details>
+                                        </form>
+                                        {% else %}
+                                        <form method="POST" action="{% url 'save_answer' task.id %}" class="mt-3">
+                                            {% csrf_token %}
+                                            <div class="p-4 rounded-3 border"
+                                                style="background-color: #0b0c0a; border-color: rgba(255, 193, 7, 0.15) !important;">
+                                                <div class="text-warning small mb-3"
+                                                    style="font-family: var(--font-mono);">
+                                                    > AWAITING_INPUT: Ответ ещё не добавлен.
+                                                </div>
+                                                <textarea name="answer" rows="4"
+                                                    class="form-control mb-3"
+                                                    style="font-family: var(--font-mono); font-size: 0.9rem;"
+                                                    placeholder="Введите правильный ответ..." required></textarea>
+                                                <button type="submit" class="btn btn-sm btn-primary px-4">
+                                                    <i class="bi bi-check2 me-1"></i> ОТПРАВИТЬ_ОТВЕТ
+                                                </button>
+                                            </div>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-secondary small py-2" style="font-family: var(--font-mono);">
+                                > 204_NO_TASKS: В этом уроке нет заданий.</div>
+                            {% endfor %}
+                        </div>
+
+                    </div>
+                    {% empty %}
+                    <div class="p-5 text-center" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                        > нет_данных_в_этом_модуле</div>
+                    {% endfor %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="glass-panel p-5 text-center mt-4">
+        <i class="bi bi-exclamation-triangle display-4 text-warning mb-3 d-block"></i>
+        <div style="font-family: var(--font-mono);">SYNC_PENDING: Структура курса не инициализирована.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

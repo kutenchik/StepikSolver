@@ -1,0 +1,107 @@
+{% extends 'solutions/base.html' %}
+
+{% block title %}Регистрация - StepikAnswers{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4 pt-md-4">
+    <div class="col-md-8 col-lg-5 animate-stagger" style="animation-delay: 0.1s;">
+
+        <div class="text-center mb-5">
+            <div class="mb-4">
+                <i class="bi bi-person-plus-fill" style="font-size: 3.5rem; color: var(--accent);"></i>
+            </div>
+            <h1 style="font-family: var(--font-heading); font-weight: 600; font-size: 2.5rem;" class="mb-3">create_account</h1>
+            <p style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.9rem;">Создайте аккаунт для импорта курсов и управления ответами.</p>
+        </div>
+
+        <div class="glass-panel p-4 p-md-5 animate-stagger" style="animation-delay: 0.2s;">
+            <form method="POST" novalidate>
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="alert border mb-4 p-3" style="background: rgba(255, 107, 107, 0.08); border-color: rgba(255, 107, 107, 0.3) !important; color: #ff6b6b;">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong style="font-family: var(--font-mono); font-size: 0.85rem;">ERROR: Исправьте ошибки</strong>
+                    </div>
+                    <ul class="mb-0 small ps-3">
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label for="{{ form.username.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                        <i class="bi bi-person me-1"></i> USERNAME
+                    </label>
+                    {{ form.username }}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.email.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                        <i class="bi bi-envelope me-1"></i> EMAIL <span class="text-muted">(опционально)</span>
+                    </label>
+                    {{ form.email }}
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <label for="{{ form.password1.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                            <i class="bi bi-lock me-1"></i> PASSWORD
+                        </label>
+                        {{ form.password1 }}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="{{ form.password2.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                            <i class="bi bi-lock-fill me-1"></i> CONFIRM
+                        </label>
+                        {{ form.password2 }}
+                    </div>
+                </div>
+
+                <hr style="border-color: var(--border-color);" class="my-4">
+                <p class="small mb-1" style="color: var(--accent); font-family: var(--font-mono);">
+                    <i class="bi bi-key me-1"></i> STEPIK_API_CREDENTIALS
+                </p>
+                <p class="small mb-4" style="color: var(--text-secondary);">
+                    Получите ключи на <a href="https://stepik.org/oauth2/applications/" target="_blank" style="color: var(--accent);">stepik.org/oauth2/applications/</a>
+                </p>
+
+                <div class="mb-4">
+                    <label for="{{ form.stepik_client_id.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                        CLIENT_ID
+                    </label>
+                    {{ form.stepik_client_id }}
+                </div>
+
+                <div class="mb-4">
+                    <label for="{{ form.stepik_client_secret.id_for_label }}" class="form-label small" style="font-family: var(--font-mono); color: var(--text-secondary);">
+                        CLIENT_SECRET
+                    </label>
+                    {{ form.stepik_client_secret }}
+                </div>
+
+                <div class="text-center mt-5">
+                    <button type="submit" class="btn btn-primary px-5 py-3 shadow-none w-100" style="font-size: 1.1rem; letter-spacing: 1px;">
+                        <i class="bi bi-rocket-takeoff me-2"></i> СОЗДАТЬ АККАУНТ
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="text-center mt-4 animate-stagger" style="animation-delay: 0.3s;">
+            <p class="small" style="color: var(--text-secondary); font-family: var(--font-mono);">
+                Уже есть аккаунт? <a href="{% url 'login' %}" style="color: var(--accent); text-decoration: none;">init_session →</a>
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

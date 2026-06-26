@@ -1,0 +1,91 @@
+{% extends 'solutions/base.html' %}
+
+{% block title %}Запуск прохождения - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-panel p-5 animate-stagger">
+            <div class="text-center mb-4">
+                {% if course.cover_url %}
+                <img src="{{ course.cover_url }}" alt="Обложка курса" class="img-fluid rounded mb-3 shadow-sm" style="max-height: 150px; object-fit: cover;">
+                {% else %}
+                <div class="bg-secondary rounded d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 100px;">
+                    <i class="bi bi-image text-white-50 fs-1"></i>
+                </div>
+                {% endif %}
+                <h2 style="color: var(--text-primary); font-family: var(--font-heading);">{{ course.title }}</h2>
+                <p class="text-muted mb-0">ID: {{ course.stepik_id }}</p>
+            </div>
+
+            <div class="card bg-dark border-secondary mb-4 shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="text-muted mb-3">Текущий прогресс на Stepik</h5>
+                    <div class="display-4 fw-bold mb-2" style="color: var(--primary-color);">
+                        {{ current_score }} <span class="fs-4 text-muted">/ {{ total_score }}</span>
+                    </div>
+                    <p class="text-muted small mb-0">баллов набрано</p>
+                </div>
+            </div>
+
+            <form method="post" action="{% url 'run_course' course.id %}">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="target_percent" class="form-label d-flex justify-content-between">
+                        <span class="text-muted">Целевой процент прохождения</span>
+                        <span id="percent-val" class="fw-bold" style="color: var(--primary-color);">100%</span>
+                    </label>
+                    <input type="range" class="form-range" id="target_percent" name="target_percent" min="0" max="100" value="100" oninput="updateCalculations()">
+                    
+                    <div class="d-flex justify-content-between mt-2 small">
+                        <span class="text-muted">0%</span>
+                        <span class="text-muted">50%</span>
+                        <span class="text-muted">100%</span>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 shadow-sm d-flex align-items-center gap-3 mb-4" style="background-color: rgba(13, 202, 240, 0.1); color: #0dcaf0;">
+                    <i class="bi bi-info-circle-fill fs-4"></i>
+                    <div>
+                        Система будет решать задачи до тех пор, пока не наберёт 
+                        <strong id="target-score-display">{{ total_score }}</strong> баллов. 
+                        После этого оставшиеся уроки будут просто помечены как просмотренные.
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg" id="start-btn">
+                        <i class="bi bi-rocket-takeoff me-2"></i> ЗАПУСТИТЬ ПРОХОЖДЕНИЕ
+                    </button>
+                    <a href="{% url 'course_detail' course.id %}" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const totalScore = parseInt("{{ total_score }}", 10) || 0;
+    const currentScore = parseInt("{{ current_score }}", 10) || 0;
+
+    function updateCalculations() {
+        const percent = document.getElementById('target_percent').value;
+        document.getElementById('percent-val').textContent = percent + '%';
+        
+        const target = Math.floor(totalScore * (percent / 100));
+        document.getElementById('target-score-display').textContent = target;
+
+        const btn = document.getElementById('start-btn');
+        if (target <= currentScore) {
+            btn.classList.replace('btn-primary', 'btn-warning');
+            btn.innerHTML = '<i class="bi bi-eye me-2"></i> ПРОСТО ОТМЕТИТЬ ПРОСМОТРЕННЫМИ';
+        } else {
+            btn.classList.replace('btn-warning', 'btn-primary');
+            btn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i> ЗАПУСТИТЬ ПРОХОЖДЕНИЕ';
+        }
+    }
+    
+    // Initial call
+    updateCalculations();
+</script>
+{% endblock %}
