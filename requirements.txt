@@ -1,0 +1,5 @@
+Django==5.2.11
+loguru==0.7.3
+openai==1.93.0
+python-dotenv==1.1.1
+requests==2.32.4
